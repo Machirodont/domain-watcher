@@ -1,0 +1,55 @@
+version: "3.7"
+
+services:
+  nginx:
+    container_name: nginx
+    build: ./docker/nginx
+    restart: always
+    ports:
+      - "8080:80"
+    links:
+      - fpm
+    volumes:
+      - ./docker/nginx/conf/hosts/:/etc/nginx/conf.d/
+      - ./laravel:/var/www
+      - ./storage/nginx_log:/var/log/nginx
+    networks:
+      - frontend
+      - backend
+
+  fpm:
+    container_name: fpm
+    build: ./docker/fpm
+    restart: always
+    volumes:
+      - ./laravel:/var/www
+      - ./docker/fpm:/home/configs
+    networks:
+      - backend
+
+  php_cli:
+    container_name: php_cli
+    build: ./docker/php_cli
+    restart: always
+    volumes:
+      - ./laravel:/var/www
+      - ./docker/php_cli:/home/configs
+    networks:
+      - backend
+  db:
+    container_name: db
+    image: mysql:8.4
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'rootpassword'
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    networks:
+      - backend
+
+networks:
+  backend: {}
+  frontend: {}
