@@ -3,9 +3,11 @@
 namespace App\Services\CheckDomains;
 
 use App\Models\DomainCheckLog;
+use Carbon\Carbon;
 
 class DomainCheckLogRepository
 {
+    private const LOGS_LIFE_TIME_HOURS = 7 * 24;
 
     public function getCheckLogSummary(int $domainId, int $depth): CheckLogSummaryDto
     {
@@ -49,6 +51,13 @@ class DomainCheckLogRepository
             ->orderBy('created_at', 'desc')
             ->limit($depth)
             ->get()->all();
+    }
+
+    public function clearOldLogs(): void
+    {
+        DomainCheckLog::query()
+            ->where('created_at', '<', Carbon::now()->subHours(self::LOGS_LIFE_TIME_HOURS))
+            ->delete();
     }
 
 }
